@@ -1,4 +1,5 @@
 import { NativeModules, Platform } from 'react-native';
+import PreviewModal from './PreviewModal';
 
 const LINKING_ERROR =
   `The package 'react-native-image-preview' doesn't seem to be linked. Make sure: \n\n` +
@@ -17,6 +18,8 @@ const ImagePreview = NativeModules.ImagePreview
       }
     );
 
-export function multiply(a: number, b: number): Promise<number> {
+function multiply(a: number, b: number): Promise<number> {
   return ImagePreview.multiply(a, b);
 }
+
+export { multiply, PreviewModal };
