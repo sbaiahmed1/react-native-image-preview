@@ -109,8 +109,8 @@ const PreviewModal: React.FC = () => {
   const imageAnimatedStyle = useAnimatedStyle(() => {
     const opacity = interpolate(
       positionY.value,
-      [-height / 3, -200, 0, 200, height / 3],
-      [0, 0.5, 1, 0.5, 0],
+      [-height / 3, -200, -100, 0, 100, 200, height / 3],
+      [0, 0.5, 1, 1, 1, 0.5, 0],
       Extrapolation.CLAMP
     );
     return {
@@ -121,8 +121,16 @@ const PreviewModal: React.FC = () => {
   const containerAnimatedStyle = useAnimatedStyle(() => {
     const backgroundColor = interpolateColor(
       positionY.value,
-      [-height / 3, -200, 0, 200, height / 3],
-      ['#FFFFFF00', '#FFFFFF80', '#000000', '#FFFFFF80', '#FFFFFF00']
+      [-height / 3, -200, -100, 0, 100, 200, height / 3],
+      [
+        '#FFFFFF00',
+        '#FFFFFF80',
+        '#000000',
+        '#000000',
+        '#000000',
+        '#FFFFFF80',
+        '#FFFFFF00',
+      ]
     );
     return {
       backgroundColor: scale.value > 1 ? 'black' : backgroundColor,
