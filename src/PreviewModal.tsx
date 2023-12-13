@@ -80,20 +80,38 @@ const PreviewModal: React.FC = () => {
       }
     });
 
+  // const pinch = Gesture.Pinch()
+  //   .onUpdate((e) => {
+  //     scale.value = e.scale;
+  //   })
+  //   .onEnd((e) => {
+  //     if (e.scale < 1) {
+  //       scale.value = withTiming(1);
+  //       savedScale.value = 1;
+  //
+  //       positionX.value = withTiming(0, { duration: 100 });
+  //       positionY.value = withTiming(0, { duration: 100 });
+  //       savedPositionX.value = 0;
+  //       savedPositionY.value = 0;
+  //     } else {
+  //     }
+  //   });
+
   const pinch = Gesture.Pinch()
-    .onStart((_) => {
-      scale.value = savedScale.value;
+    .onUpdate((event) => {
+      scale.value = Math.min(savedScale.value * event.scale, 3);
     })
-    .onUpdate((e) => {
-      scale.value = e.scale;
-    })
-    .onEnd((e) => {
-      if (e.scale < 1) {
+    .onEnd(() => {
+      savedScale.value = scale.value;
+      if (scale.value < 1) {
         scale.value = withTiming(1);
         savedScale.value = 1;
+
+        positionX.value = withTiming(0, { duration: 100 });
+        positionY.value = withTiming(0, { duration: 100 });
+        savedPositionX.value = 0;
+        savedPositionY.value = 0;
       }
-      scale.value = e.scale;
-      savedScale.value = e.scale;
     });
 
   const animatedStyle = useAnimatedStyle(() => {
@@ -110,7 +128,7 @@ const PreviewModal: React.FC = () => {
     const opacity = interpolate(
       positionY.value,
       [-height / 3, -200, -100, 0, 100, 200, height / 3],
-      [0, 0.5, 1, 1, 1, 0.5, 0],
+      [0, 0.75, 1, 1, 1, 0.75, 0],
       Extrapolation.CLAMP
     );
     return {
@@ -124,11 +142,11 @@ const PreviewModal: React.FC = () => {
       [-height / 3, -200, -100, 0, 100, 200, height / 3],
       [
         '#FFFFFF00',
-        '#FFFFFF80',
+        '#FFFFFFBF',
         '#000000',
         '#000000',
         '#000000',
-        '#FFFFFF80',
+        '#FFFFFFBF',
         '#FFFFFF00',
       ]
     );
