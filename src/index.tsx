@@ -18,6 +18,7 @@ const ImagePreview = NativeModules.ImagePreview
       }
     );
 
+console.log(ImagePreview);
 function multiply(a: number, b: number): Promise<number> {
   return ImagePreview.multiply(a, b);
 }

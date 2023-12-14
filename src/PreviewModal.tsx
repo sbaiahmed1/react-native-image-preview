@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   Button,
-  Modal,
+  Dimensions,
   StyleSheet,
   useWindowDimensions,
   View,
@@ -20,10 +20,11 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import ChevronIcon from './assets/icons/ChevronIcon';
 
-const PreviewModal: React.FC = () => {
+const PreviewModal: React.FC<{ images: string | string[] }> = ({ images }) => {
   const MAX_X_OFFSET = 150;
-  const { width, height } = useWindowDimensions();
+  const { height } = useWindowDimensions();
   const savedPositionX = useSharedValue(0);
   const positionX = useSharedValue(0);
   const savedPositionY = useSharedValue(0);
@@ -31,7 +32,7 @@ const PreviewModal: React.FC = () => {
   const scale = useSharedValue(1);
   const savedScale = useSharedValue(1);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(true);
-
+  const [imageIndex, setImageIndex] = useState(0);
   const pan = Gesture.Pan()
     .onUpdate((e) => {
       if (
@@ -47,6 +48,7 @@ const PreviewModal: React.FC = () => {
       ) {
         positionX.value = savedPositionX.value + e.translationX;
       }
+
       positionY.value = savedPositionY.value + e.translationY;
     })
     .onEnd((e) => {
@@ -58,6 +60,15 @@ const PreviewModal: React.FC = () => {
       } else {
         savedPositionX.value = savedPositionX.value + e.translationX;
         savedPositionY.value = savedPositionY.value + e.translationY;
+      }
+
+      if (e.translationX > 140 && imageIndex > 0) {
+        positionX.value = withTiming(0);
+        runOnJS(setImageIndex)(imageIndex - 1);
+      }
+      if (e.translationX < -140 && imageIndex < images.length - 1) {
+        runOnJS(setImageIndex)(imageIndex + 1);
+        positionX.value = withTiming(0);
       }
 
       if ((e.translationY > 200 || e.translationY < -200) && scale.value <= 1) {
@@ -80,23 +91,6 @@ const PreviewModal: React.FC = () => {
       }
     });
 
-  // const pinch = Gesture.Pinch()
-  //   .onUpdate((e) => {
-  //     scale.value = e.scale;
-  //   })
-  //   .onEnd((e) => {
-  //     if (e.scale < 1) {
-  //       scale.value = withTiming(1);
-  //       savedScale.value = 1;
-  //
-  //       positionX.value = withTiming(0, { duration: 100 });
-  //       positionY.value = withTiming(0, { duration: 100 });
-  //       savedPositionX.value = 0;
-  //       savedPositionY.value = 0;
-  //     } else {
-  //     }
-  //   });
-
   const pinch = Gesture.Pinch()
     .onUpdate((event) => {
       scale.value = Math.min(savedScale.value * event.scale, 3);
@@ -115,23 +109,19 @@ const PreviewModal: React.FC = () => {
     });
 
   const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        { translateY: positionY.value },
-        { translateX: positionX.value },
-        { scale: scale.value },
-      ],
-    };
-  });
-
-  const imageAnimatedStyle = useAnimatedStyle(() => {
     const opacity = interpolate(
       positionY.value,
       [-height / 3, -200, -100, 0, 100, 200, height / 3],
       [0, 0.75, 1, 1, 1, 0.75, 0],
       Extrapolation.CLAMP
     );
+
     return {
+      transform: [
+        { translateY: positionY.value },
+        { translateX: positionX.value },
+        { scale: scale.value },
+      ],
       opacity: scale?.value > 1 ? 1 : opacity,
     };
   });
@@ -155,33 +145,75 @@ const PreviewModal: React.FC = () => {
     };
   });
 
+  const nextButtonAnimatedStyles = useAnimatedStyle(() => {
+    const opacity = interpolate(
+      positionX.value,
+      [-100, -130],
+      [0, 1],
+      Extrapolation.CLAMP
+    );
+    return {
+      opacity,
+    };
+  });
+
+  const previousButtonAnimatedStyles = useAnimatedStyle(() => {
+    const opacity = interpolate(
+      positionX.value,
+      [100, 130],
+      [0, 1],
+      Extrapolation.CLAMP
+    );
+    return {
+      opacity,
+    };
+  });
+
   const composedGestures = Gesture.Race(doubleTap, pan, pinch);
 
   return (
-    <View style={{ backgroundColor: 'green', flex: 1, width: '100%' }}>
+    <View style={{ backgroundColor: 'white', flex: 1, width: '100%' }}>
       <Button title={'show modal'} onPress={() => setIsModalOpen(true)} />
       <Button title={'show modal'} onPress={() => setIsModalOpen(true)} />
       <Button title={'show modal'} onPress={() => setIsModalOpen(true)} />
-      <Modal transparent visible={isModalOpen} animationType={'fade'}>
+      {isModalOpen && (
         <Animated.View style={[styles.container, containerAnimatedStyle]}>
           <GestureHandlerRootView style={{ flex: 1 }}>
             <GestureDetector gesture={composedGestures}>
-              <Animated.Image
-                resizeMode={'contain'}
-                fadeDuration={500}
-                style={[
-                  { width, height: '100%' },
-                  animatedStyle,
-                  imageAnimatedStyle,
-                ]}
-                source={{
-                  uri: 'https://img.freepik.com/photos-gratuite/peinture-numerique-montagne-arbre-colore-au-premier-plan_1340-25699.jpg?size=626&ext=jpg&ga=GA1.1.1826414947.1699142400&semt=ais',
-                }}
-              />
+              <View
+                style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}
+              >
+                <Animated.View
+                  style={[
+                    styles.absolute,
+                    styles.left0,
+                    previousButtonAnimatedStyles,
+                  ]}
+                >
+                  <ChevronIcon />
+                </Animated.View>
+                <Animated.Image
+                  resizeMode={'contain'}
+                  fadeDuration={500}
+                  style={[styles.image, animatedStyle]}
+                  source={{
+                    uri: images[imageIndex],
+                  }}
+                />
+                <Animated.View
+                  style={[
+                    styles.absolute,
+                    styles.right0,
+                    nextButtonAnimatedStyles,
+                  ]}
+                >
+                  <ChevronIcon style={{ transform: [{ rotate: '180deg' }] }} />
+                </Animated.View>
+              </View>
             </GestureDetector>
           </GestureHandlerRootView>
         </Animated.View>
-      </Modal>
+      )}
     </View>
   );
 };
@@ -191,6 +223,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 999,
+  },
+  image: {
+    width: Dimensions.get('screen').width,
+    height: '100%',
+  },
+  absolute: {
+    position: 'absolute',
+  },
+  left0: {
+    left: 0,
+  },
+  right0: {
+    right: 0,
   },
 });
 

@@ -79,8 +79,7 @@
   },
   "peerDependencies": {
     "react": "*",
-    "react-native": "*",
-    "react-native-modal": "^13.0.1"
+    "react-native": "*"
   },
   "workspaces": [
     "example"
@@ -161,5 +160,9 @@
         }
       ]
     ]
+  },
+  "dependencies": {
+    "react-native-modal": "^13.0.1",
+    "react-native-svg": "^14.1.0"
   }
 }
