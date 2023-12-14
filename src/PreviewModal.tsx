@@ -13,6 +13,9 @@ import {
 } from 'react-native-gesture-handler';
 import Animated, {
   Extrapolation,
+  FadeOut,
+  FlipInEasyX,
+  FlipOutEasyX,
   interpolate,
   interpolateColor,
   runOnJS,
@@ -22,8 +25,14 @@ import Animated, {
 } from 'react-native-reanimated';
 import ChevronIcon from './assets/icons/ChevronIcon';
 
+/**
+ * Modal component for previewing images with zoom and pan gestures.
+ * @component
+ * @param {string | string[]} images - An array of image URLs or a single image URL.
+ * @returns {ReactElement} - React component
+ */
 const PreviewModal: React.FC<{ images: string | string[] }> = ({ images }) => {
-  const MAX_X_OFFSET = 150;
+  const MAX_X_OFFSET = 100;
   const { height } = useWindowDimensions();
   const savedPositionX = useSharedValue(0);
   const positionX = useSharedValue(0);
@@ -62,11 +71,19 @@ const PreviewModal: React.FC<{ images: string | string[] }> = ({ images }) => {
         savedPositionY.value = savedPositionY.value + e.translationY;
       }
 
-      if (e.translationX > 140 && imageIndex > 0) {
+      if (
+        e.translationX > MAX_X_OFFSET &&
+        imageIndex > 0 &&
+        scale.value === 1
+      ) {
         positionX.value = withTiming(0);
         runOnJS(setImageIndex)(imageIndex - 1);
       }
-      if (e.translationX < -140 && imageIndex < images.length - 1) {
+      if (
+        e.translationX < MAX_X_OFFSET &&
+        imageIndex < images.length - 1 &&
+        scale.value === 1
+      ) {
         runOnJS(setImageIndex)(imageIndex + 1);
         positionX.value = withTiming(0);
       }
@@ -111,7 +128,7 @@ const PreviewModal: React.FC<{ images: string | string[] }> = ({ images }) => {
   const animatedStyle = useAnimatedStyle(() => {
     const opacity = interpolate(
       positionY.value,
-      [-height / 3, -200, -100, 0, 100, 200, height / 3],
+      [-height / 2, -200, -100, 0, 100, 200, height / 2],
       [0, 0.75, 1, 1, 1, 0.75, 0],
       Extrapolation.CLAMP
     );
@@ -129,7 +146,7 @@ const PreviewModal: React.FC<{ images: string | string[] }> = ({ images }) => {
   const containerAnimatedStyle = useAnimatedStyle(() => {
     const backgroundColor = interpolateColor(
       positionY.value,
-      [-height / 3, -200, -100, 0, 100, 200, height / 3],
+      [-height / 2, -200, -100, 0, 100, 200, height / 2],
       [
         '#FFFFFF00',
         '#FFFFFFBF',
@@ -148,24 +165,25 @@ const PreviewModal: React.FC<{ images: string | string[] }> = ({ images }) => {
   const nextButtonAnimatedStyles = useAnimatedStyle(() => {
     const opacity = interpolate(
       positionX.value,
-      [-100, -130],
+      [-50, -MAX_X_OFFSET],
       [0, 1],
       Extrapolation.CLAMP
     );
     return {
-      opacity,
+      opacity:
+        imageIndex < images.length - 1 && scale.value === 1 ? opacity : 0,
     };
   });
 
   const previousButtonAnimatedStyles = useAnimatedStyle(() => {
     const opacity = interpolate(
       positionX.value,
-      [100, 130],
+      [50, MAX_X_OFFSET],
       [0, 1],
       Extrapolation.CLAMP
     );
     return {
-      opacity,
+      opacity: imageIndex > 0 && scale.value === 1 ? opacity : 0,
     };
   });
 
@@ -177,7 +195,10 @@ const PreviewModal: React.FC<{ images: string | string[] }> = ({ images }) => {
       <Button title={'show modal'} onPress={() => setIsModalOpen(true)} />
       <Button title={'show modal'} onPress={() => setIsModalOpen(true)} />
       {isModalOpen && (
-        <Animated.View style={[styles.container, containerAnimatedStyle]}>
+        <Animated.View
+          exiting={FadeOut}
+          style={[styles.container, containerAnimatedStyle]}
+        >
           <GestureHandlerRootView style={{ flex: 1 }}>
             <GestureDetector gesture={composedGestures}>
               <View
@@ -193,6 +214,9 @@ const PreviewModal: React.FC<{ images: string | string[] }> = ({ images }) => {
                   <ChevronIcon />
                 </Animated.View>
                 <Animated.Image
+                  entering={FlipInEasyX}
+                  exiting={FlipOutEasyX}
+                  key={images[imageIndex]}
                   resizeMode={'contain'}
                   fadeDuration={500}
                   style={[styles.image, animatedStyle]}
@@ -218,6 +242,16 @@ const PreviewModal: React.FC<{ images: string | string[] }> = ({ images }) => {
   );
 };
 
+/**
+ * Represents a collection of style objects.
+ *
+ * @typedef {Object} Styles
+ * @property {Object} container - A style object representing the container styling.
+ * @property {Object} image - A style object representing the image styling.
+ * @property {Object} absolute - A style object representing the absolute positioning.
+ * @property {Object} left0 - A style object representing the positioning to the left.
+ * @property {Object} right0 - A style object representing the positioning to the right.
+ */
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
