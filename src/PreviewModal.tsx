@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Button,
   Dimensions,
   StyleSheet,
@@ -13,14 +14,16 @@ import {
 } from 'react-native-gesture-handler';
 import Animated, {
   Extrapolation,
+  FadeInRight,
   FadeOut,
-  FlipInEasyX,
-  FlipOutEasyX,
+  FadeOutRight,
   interpolate,
   interpolateColor,
+  ReduceMotion,
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
+  withRepeat,
   withTiming,
 } from 'react-native-reanimated';
 import ChevronIcon from './assets/icons/ChevronIcon';
@@ -35,13 +38,17 @@ const PreviewModal: React.FC<{ images: string | string[] }> = ({ images }) => {
   const MAX_X_OFFSET = 100;
   const { height } = useWindowDimensions();
   const savedPositionX = useSharedValue(0);
+  const scrollDirection = useSharedValue('right');
   const positionX = useSharedValue(0);
+  const animatedText = useSharedValue(1);
   const savedPositionY = useSharedValue(0);
   const positionY = useSharedValue(0);
   const scale = useSharedValue(1);
   const savedScale = useSharedValue(1);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(true);
   const [imageIndex, setImageIndex] = useState(0);
+  const [isImageLoaded, setIsImageLoaded] = useState<boolean>(false);
+
   const pan = Gesture.Pan()
     .onUpdate((e) => {
       if (
@@ -56,9 +63,9 @@ const PreviewModal: React.FC<{ images: string | string[] }> = ({ images }) => {
         savedPositionX.value + e.translationX > -MAX_X_OFFSET * scale.value
       ) {
         positionX.value = savedPositionX.value + e.translationX;
+        positionY.value = 0;
+        scrollDirection.value = 'left';
       }
-
-      positionY.value = savedPositionY.value + e.translationY;
     })
     .onEnd((e) => {
       if (scale.value <= 1) {
@@ -77,6 +84,7 @@ const PreviewModal: React.FC<{ images: string | string[] }> = ({ images }) => {
         scale.value === 1
       ) {
         positionX.value = withTiming(0);
+        runOnJS(setIsImageLoaded)(false);
         runOnJS(setImageIndex)(imageIndex - 1);
       }
       if (
@@ -85,6 +93,7 @@ const PreviewModal: React.FC<{ images: string | string[] }> = ({ images }) => {
         scale.value === 1
       ) {
         runOnJS(setImageIndex)(imageIndex + 1);
+        runOnJS(setIsImageLoaded)(false);
         positionX.value = withTiming(0);
       }
 
@@ -110,7 +119,7 @@ const PreviewModal: React.FC<{ images: string | string[] }> = ({ images }) => {
 
   const pinch = Gesture.Pinch()
     .onUpdate((event) => {
-      scale.value = Math.min(savedScale.value * event.scale, 3);
+      scale.value = Math.min(savedScale.value * event.scale, 4);
     })
     .onEnd(() => {
       savedScale.value = scale.value;
@@ -186,6 +195,20 @@ const PreviewModal: React.FC<{ images: string | string[] }> = ({ images }) => {
       opacity: imageIndex > 0 && scale.value === 1 ? opacity : 0,
     };
   });
+  useEffect(() => {
+    animatedText.value = withRepeat(
+      withTiming(0.3, { duration: 1000, reduceMotion: ReduceMotion.System }),
+      -1,
+      true
+    );
+  }, [animatedText]);
+
+  const blinkingTextStyles = useAnimatedStyle(() => {
+    const opacity = animatedText.value;
+    return {
+      opacity: opacity,
+    };
+  });
 
   const composedGestures = Gesture.Race(doubleTap, pan, pinch);
 
@@ -202,7 +225,11 @@ const PreviewModal: React.FC<{ images: string | string[] }> = ({ images }) => {
           <GestureHandlerRootView style={{ flex: 1 }}>
             <GestureDetector gesture={composedGestures}>
               <View
-                style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}
+                style={{
+                  flexDirection: 'row',
+                  flex: 1,
+                  alignItems: 'center',
+                }}
               >
                 <Animated.View
                   style={[
@@ -213,11 +240,42 @@ const PreviewModal: React.FC<{ images: string | string[] }> = ({ images }) => {
                 >
                   <ChevronIcon />
                 </Animated.View>
+                {!isImageLoaded && (
+                  <View
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      zIndex: 1000,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <ActivityIndicator animating />
+                    <Animated.Text
+                      style={[
+                        {
+                          color: 'white',
+                          paddingVertical: 10,
+                          textAlign: 'center',
+                        },
+                        blinkingTextStyles,
+                      ]}
+                    >
+                      Loading...
+                    </Animated.Text>
+                  </View>
+                )}
                 <Animated.Image
-                  entering={FlipInEasyX}
-                  exiting={FlipOutEasyX}
-                  key={images[imageIndex]}
+                  onLoadEnd={() => {
+                    setIsImageLoaded(true);
+                  }}
+                  entering={FadeInRight.duration(200)}
+                  exiting={FadeOutRight.duration(200)}
                   resizeMode={'contain'}
+                  key={images[imageIndex]}
                   fadeDuration={500}
                   style={[styles.image, animatedStyle]}
                   source={{
