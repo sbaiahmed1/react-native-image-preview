@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Button,
   Dimensions,
+  type ImageSourcePropType,
   StyleSheet,
   useWindowDimensions,
   View,
@@ -27,14 +28,16 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import ChevronIcon from './assets/icons/ChevronIcon';
+import { BrokenImage } from './assets/images';
+import { isValidUrl } from './utils/validations';
 
 /**
  * Modal component for previewing images with zoom and pan gestures.
  * @component
- * @param {string | string[]} images - An array of image URLs or a single image URL.
+ * @param {string[]} images - An array of image URLs or a single image URL.
  * @returns {ReactElement} - React component
  */
-const PreviewModal: React.FC<{ images: string | string[] }> = ({ images }) => {
+const PreviewModal: React.FC<{ images: string[] }> = ({ images }) => {
   const MAX_X_OFFSET = 100;
   const { height } = useWindowDimensions();
   const savedPositionX = useSharedValue(0);
@@ -48,9 +51,11 @@ const PreviewModal: React.FC<{ images: string | string[] }> = ({ images }) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(true);
   const [imageIndex, setImageIndex] = useState(0);
   const [isImageLoaded, setIsImageLoaded] = useState<boolean>(false);
+  const [error, setError] = useState<boolean>(false);
 
   const pan = Gesture.Pan()
     .onUpdate((e) => {
+      console.log(e);
       if (
         savedPositionX.value + e.translationX > 0 &&
         savedPositionX.value + e.translationX < MAX_X_OFFSET * scale.value
@@ -85,6 +90,7 @@ const PreviewModal: React.FC<{ images: string | string[] }> = ({ images }) => {
       ) {
         positionX.value = withTiming(0);
         runOnJS(setIsImageLoaded)(false);
+        runOnJS(setError)(false);
         runOnJS(setImageIndex)(imageIndex - 1);
       }
       if (
@@ -94,6 +100,7 @@ const PreviewModal: React.FC<{ images: string | string[] }> = ({ images }) => {
       ) {
         runOnJS(setImageIndex)(imageIndex + 1);
         runOnJS(setIsImageLoaded)(false);
+        runOnJS(setError)(false);
         positionX.value = withTiming(0);
       }
 
@@ -212,6 +219,37 @@ const PreviewModal: React.FC<{ images: string | string[] }> = ({ images }) => {
 
   const composedGestures = Gesture.Race(doubleTap, pan, pinch);
 
+  //
+  const getImageSource = (): ImageSourcePropType => {
+    // Basic checks to prevent errors
+    // Return broken image if error or invalid images array
+    if (error || !Array.isArray(images)) {
+      return BrokenImage;
+    }
+
+    return fetchImageAtIndex(images, imageIndex);
+  };
+
+  const fetchImageAtIndex = (
+    images: any[],
+    index: number
+  ): ImageSourcePropType => {
+    // Check if index is within bounds
+    if (index >= images.length) {
+      return BrokenImage;
+    }
+
+    // Check the type of the image at the index and return accordingly
+    const imageAtIndex = images[index];
+    if (typeof imageAtIndex === 'string') {
+      return isValidUrl(imageAtIndex) ? { uri: imageAtIndex } : BrokenImage;
+    } else if (typeof imageAtIndex === 'number') {
+      return imageAtIndex;
+    }
+
+    return BrokenImage;
+  };
+
   return (
     <View style={{ backgroundColor: 'white', flex: 1, width: '100%' }}>
       <Button title={'show modal'} onPress={() => setIsModalOpen(true)} />
@@ -272,15 +310,17 @@ const PreviewModal: React.FC<{ images: string | string[] }> = ({ images }) => {
                   onLoadEnd={() => {
                     setIsImageLoaded(true);
                   }}
+                  onError={() => {
+                    setError(true);
+                    console.error('Failed to load image');
+                  }}
                   entering={FadeInRight.duration(200)}
                   exiting={FadeOutRight.duration(200)}
                   resizeMode={'contain'}
                   key={images[imageIndex]}
                   fadeDuration={500}
                   style={[styles.image, animatedStyle]}
-                  source={{
-                    uri: images[imageIndex],
-                  }}
+                  source={getImageSource()}
                 />
                 <Animated.View
                   style={[
