@@ -42,7 +42,7 @@ const PreviewModal: React.FC<{
   images: string[] | number[];
   isModalOpen: boolean;
   onCloseModal: () => void;
-}> = ({ isModalOpen, images, onCloseModal }) => {
+}> = ({ isModalOpen = false, images = [], onCloseModal }) => {
   const { height } = useWindowDimensions();
   const savedPositionX = useSharedValue(0);
   const positionX = useSharedValue(0);
