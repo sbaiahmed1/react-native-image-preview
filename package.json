@@ -1,5 +1,5 @@
 {
-  "name": "react-native-image-preview",
+  "name": "react-native-image-preview-reanimated",
   "version": "0.1.0",
   "description": "React native image previewer made with Reanimated RNGH",
   "main": "lib/commonjs/index",
