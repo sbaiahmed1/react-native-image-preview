@@ -108,11 +108,14 @@ const styles = StyleSheet.create({
 
 ## Supported Props (others will be added)
 
-| Props            | Default |         Type          | Description                                    |
-|:-----------------|:-------:|:---------------------:|:-----------------------------------------------|
-| **images**       |   []    | ImageSourcePropType[] | Array of images to be shown                    |
-| **isModalOpen**  |  false  |        boolean        | A boolean defining if the modal is open or not |
-| **onCloseModal** | ()=> {} |       Function        | executes a callback closing the modal          |
+| Props                            |  Default  |         Type          | Description                                      |
+|:---------------------------------|:---------:|:---------------------:|:-------------------------------------------------|
+| **images**                       |    []     | ImageSourcePropType[] | Array of images to be shown                      |
+| **isModalOpen**                  |   false   |        boolean        | A boolean defining if the modal is open or not   |
+| **onCloseModal**                 |  ()=> {}  |       Function        | executes a callback closing the modal            |
+| **CustomPreviousImageComponent** | undefined |   ()=> JSX.Element    | Allows us to set custom previous image component |
+| **CustomNextImageComponent**     | undefined |   ()=> JSX.Element    | Allows us to set custom next image component     |
+| **CustomLoadingComponent**       | undefined |   ()=> JSX.Element    | Allows us to set custom image loader component   |
 
 ## Contributing
 
