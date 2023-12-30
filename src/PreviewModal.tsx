@@ -3,7 +3,9 @@ import {
   ActivityIndicator,
   Button,
   Dimensions,
+  Image,
   type ImageSourcePropType,
+  Pressable,
   StyleSheet,
   useWindowDimensions,
   View,
@@ -30,6 +32,7 @@ import Animated, {
 import ChevronIcon from './assets/icons/ChevronIcon';
 import { BrokenImage } from './assets/images';
 import { isValidUrl } from './utils/validations';
+import { CloseIcon } from './assets/icons';
 
 /**
  * Modal component for previewing images with zoom and pan gestures.
@@ -41,7 +44,6 @@ const PreviewModal: React.FC<{ images: string[] }> = ({ images }) => {
   const MAX_X_OFFSET = 100;
   const { height } = useWindowDimensions();
   const savedPositionX = useSharedValue(0);
-  const scrollDirection = useSharedValue('right');
   const positionX = useSharedValue(0);
   const animatedText = useSharedValue(1);
   const savedPositionY = useSharedValue(0);
@@ -49,28 +51,28 @@ const PreviewModal: React.FC<{ images: string[] }> = ({ images }) => {
   const scale = useSharedValue(1);
   const savedScale = useSharedValue(1);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(true);
-  const [imageIndex, setImageIndex] = useState(0);
+  const [imageIndex, setImageIndex] = useState(1);
   const [isImageLoaded, setIsImageLoaded] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
 
   const pan = Gesture.Pan()
     .onUpdate((e) => {
-      console.log(e);
       if (
         savedPositionX.value + e.translationX > 0 &&
         savedPositionX.value + e.translationX < MAX_X_OFFSET * scale.value
       ) {
-        positionX.value = savedPositionX.value + e.translationX;
+        positionX.value = e.translationX;
       }
 
       if (
         savedPositionX.value + e.translationX < 0 &&
         savedPositionX.value + e.translationX > -MAX_X_OFFSET * scale.value
       ) {
-        positionX.value = savedPositionX.value + e.translationX;
-        positionY.value = 0;
-        scrollDirection.value = 'left';
+        positionX.value = e.translationX;
       }
+
+      if (e.translationY + savedPositionY.value > 0 && scale.value === 1)
+        positionY.value = e.translationY + savedPositionY.value;
     })
     .onEnd((e) => {
       if (scale.value <= 1) {
@@ -85,6 +87,7 @@ const PreviewModal: React.FC<{ images: string[] }> = ({ images }) => {
 
       if (
         e.translationX > MAX_X_OFFSET &&
+        e.translationX > 0 &&
         imageIndex > 0 &&
         scale.value === 1
       ) {
@@ -94,7 +97,7 @@ const PreviewModal: React.FC<{ images: string[] }> = ({ images }) => {
         runOnJS(setImageIndex)(imageIndex - 1);
       }
       if (
-        e.translationX < MAX_X_OFFSET &&
+        e.translationX < -MAX_X_OFFSET &&
         imageIndex < images.length - 1 &&
         scale.value === 1
       ) {
@@ -115,12 +118,14 @@ const PreviewModal: React.FC<{ images: string[] }> = ({ images }) => {
     .onStart(() => {
       if (scale.value > 1) {
         scale.value = withTiming(1);
+        savedScale.value = 1;
         positionX.value = withTiming(0);
         positionY.value = withTiming(0);
         savedPositionY.value = 0;
         savedPositionY.value = 0;
       } else {
         scale.value = withTiming(2);
+        savedScale.value = 2;
       }
     });
 
@@ -234,7 +239,7 @@ const PreviewModal: React.FC<{ images: string[] }> = ({ images }) => {
     images: any[],
     index: number
   ): ImageSourcePropType => {
-    // Check if index is within bounds
+    // Check if the index is within bounds
     if (index >= images.length) {
       return BrokenImage;
     }
@@ -251,9 +256,15 @@ const PreviewModal: React.FC<{ images: string[] }> = ({ images }) => {
   };
 
   return (
-    <View style={{ backgroundColor: 'white', flex: 1, width: '100%' }}>
-      <Button title={'show modal'} onPress={() => setIsModalOpen(true)} />
-      <Button title={'show modal'} onPress={() => setIsModalOpen(true)} />
+    <View
+      style={{
+        backgroundColor: 'white',
+        flex: 1,
+        width: '100%',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
       <Button title={'show modal'} onPress={() => setIsModalOpen(true)} />
       {isModalOpen && (
         <Animated.View
@@ -269,6 +280,17 @@ const PreviewModal: React.FC<{ images: string[] }> = ({ images }) => {
                   alignItems: 'center',
                 }}
               >
+                <Pressable
+                  hitSlop={20}
+                  onPress={() => setIsModalOpen(false)}
+                  style={styles.closeButtonContainerStyles}
+                >
+                  <Image
+                    style={styles.closeButtonStyles}
+                    tintColor={'white'}
+                    source={CloseIcon}
+                  />
+                </Pressable>
                 <Animated.View
                   style={[
                     styles.absolute,
@@ -312,7 +334,6 @@ const PreviewModal: React.FC<{ images: string[] }> = ({ images }) => {
                   }}
                   onError={() => {
                     setError(true);
-                    console.error('Failed to load image');
                   }}
                   entering={FadeInRight.duration(200)}
                   exiting={FadeOutRight.duration(200)}
@@ -320,8 +341,10 @@ const PreviewModal: React.FC<{ images: string[] }> = ({ images }) => {
                   key={images[imageIndex]}
                   fadeDuration={500}
                   style={[styles.image, animatedStyle]}
+                  resizeMethod={'resize'}
                   source={getImageSource()}
                 />
+
                 <Animated.View
                   style={[
                     styles.absolute,
@@ -342,13 +365,6 @@ const PreviewModal: React.FC<{ images: string[] }> = ({ images }) => {
 
 /**
  * Represents a collection of style objects.
- *
- * @typedef {Object} Styles
- * @property {Object} container - A style object representing the container styling.
- * @property {Object} image - A style object representing the image styling.
- * @property {Object} absolute - A style object representing the absolute positioning.
- * @property {Object} left0 - A style object representing the positioning to the left.
- * @property {Object} right0 - A style object representing the positioning to the right.
  */
 const styles = StyleSheet.create({
   container: {
@@ -364,10 +380,14 @@ const styles = StyleSheet.create({
   },
   image: {
     width: Dimensions.get('screen').width,
-    height: '100%',
+    height: Dimensions.get('screen').height / 3,
+    resizeMode: 'contain',
   },
   absolute: {
     position: 'absolute',
+  },
+  relative: {
+    position: 'relative',
   },
   left0: {
     left: 0,
@@ -375,6 +395,12 @@ const styles = StyleSheet.create({
   right0: {
     right: 0,
   },
+  closeButtonContainerStyles: {
+    position: 'absolute',
+    top: 100,
+    right: 20,
+  },
+  closeButtonStyles: { height: 15, width: 15, resizeMode: 'contain' },
 });
 
 export default PreviewModal;
