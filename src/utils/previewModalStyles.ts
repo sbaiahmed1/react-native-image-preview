@@ -62,7 +62,7 @@ export const styles = StyleSheet.create({
     height: 20,
     width: 20,
     resizeMode: 'contain',
-    transform: [{ scaleX: 1 }],
+    transform: [{ rotate: '180deg' }],
   },
 
   chevronRight: {
