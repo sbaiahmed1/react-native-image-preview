@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Button,
   Dimensions,
   Image,
   type ImageSourcePropType,
@@ -34,15 +33,17 @@ import { BrokenImage } from './assets/images';
 import { isValidUrl } from './utils/validations';
 import { CloseIcon } from './assets/icons';
 
-/**
+/*
  * Modal component for previewing images with zoom and pan gestures.
  * @component
- * @param {string[]|number[]} images - An array of image URLs or a single image URL.
  * @returns {ReactElement} - React component
  */
-const PreviewModal: React.FC<{ images: string[] | number[] }> = ({
-  images,
-}) => {
+
+const PreviewModal: React.FC<{
+  images: string[] | number[];
+  isModalOpen: boolean;
+  onCloseModal: () => void;
+}> = ({ isModalOpen, images, onCloseModal }) => {
   const MAX_X_OFFSET = 100;
   const { height } = useWindowDimensions();
   const savedPositionX = useSharedValue(0);
@@ -52,7 +53,6 @@ const PreviewModal: React.FC<{ images: string[] | number[] }> = ({
   const positionY = useSharedValue(0);
   const scale = useSharedValue(1);
   const savedScale = useSharedValue(1);
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(true);
   const [imageIndex, setImageIndex] = useState(1);
   const [isImageLoaded, setIsImageLoaded] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
@@ -110,7 +110,7 @@ const PreviewModal: React.FC<{ images: string[] | number[] }> = ({
       }
 
       if ((e.translationY > 200 || e.translationY < -200) && scale.value <= 1) {
-        runOnJS(setIsModalOpen)(false);
+        runOnJS(onCloseModal)();
       }
     });
 
@@ -254,87 +254,72 @@ const PreviewModal: React.FC<{ images: string[] | number[] }> = ({
     return BrokenImage;
   };
 
-  return (
-    <View
-      style={{
-        backgroundColor: 'white',
-        flex: 1,
-        width: '100%',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
+  return isModalOpen ? (
+    <Animated.View
+      exiting={FadeOut}
+      style={[styles.container, containerAnimatedStyle]}
     >
-      <Button title={'show modal'} onPress={() => setIsModalOpen(true)} />
-      {isModalOpen && (
-        <Animated.View
-          exiting={FadeOut}
-          style={[styles.container, containerAnimatedStyle]}
-        >
-          <GestureHandlerRootView style={styles.fullFlex}>
-            <GestureDetector gesture={composedGestures}>
-              <View style={styles.flexRowCenter}>
-                <Pressable
-                  hitSlop={20}
-                  onPress={() => setIsModalOpen(false)}
-                  style={styles.closeButtonContainerStyles}
+      <GestureHandlerRootView style={styles.fullFlex}>
+        <GestureDetector gesture={composedGestures}>
+          <View style={styles.flexRowCenter}>
+            <Pressable
+              hitSlop={20}
+              onPress={onCloseModal}
+              style={styles.closeButtonContainerStyles}
+            >
+              <Image
+                style={styles.closeButtonStyles}
+                tintColor={'white'}
+                source={CloseIcon}
+              />
+            </Pressable>
+            <Animated.View
+              style={[
+                styles.absolute,
+                styles.left0,
+                previousButtonAnimatedStyles,
+              ]}
+            >
+              <ChevronIcon />
+            </Animated.View>
+            {!isImageLoaded && (
+              <View style={styles.imageLoaderStyles}>
+                <ActivityIndicator animating />
+                <Animated.Text
+                  style={[styles.blinkingText, blinkingTextStyles]}
                 >
-                  <Image
-                    style={styles.closeButtonStyles}
-                    tintColor={'white'}
-                    source={CloseIcon}
-                  />
-                </Pressable>
-                <Animated.View
-                  style={[
-                    styles.absolute,
-                    styles.left0,
-                    previousButtonAnimatedStyles,
-                  ]}
-                >
-                  <ChevronIcon />
-                </Animated.View>
-                {!isImageLoaded && (
-                  <View style={styles.imageLoaderStyles}>
-                    <ActivityIndicator animating />
-                    <Animated.Text
-                      style={[styles.blinkingText, blinkingTextStyles]}
-                    >
-                      Loading...
-                    </Animated.Text>
-                  </View>
-                )}
-                <Animated.Image
-                  onLoadEnd={() => {
-                    setIsImageLoaded(true);
-                  }}
-                  onError={() => {
-                    setError(true);
-                  }}
-                  entering={FadeInRight.duration(200)}
-                  exiting={FadeOutRight.duration(200)}
-                  resizeMode={'contain'}
-                  key={images[imageIndex]}
-                  fadeDuration={500}
-                  style={[styles.image, animatedStyle]}
-                  resizeMethod={'resize'}
-                  source={getImageSource()}
-                />
-
-                <Animated.View
-                  style={[
-                    styles.absolute,
-                    styles.right0,
-                    nextButtonAnimatedStyles,
-                  ]}
-                >
-                  <ChevronIcon style={{ transform: [{ rotate: '180deg' }] }} />
-                </Animated.View>
+                  Loading...
+                </Animated.Text>
               </View>
-            </GestureDetector>
-          </GestureHandlerRootView>
-        </Animated.View>
-      )}
-    </View>
+            )}
+            <Animated.Image
+              onLoadEnd={() => {
+                setIsImageLoaded(true);
+              }}
+              onError={() => {
+                setError(true);
+              }}
+              entering={FadeInRight.duration(200)}
+              exiting={FadeOutRight.duration(200)}
+              resizeMode={'contain'}
+              key={images[imageIndex]}
+              fadeDuration={500}
+              style={[styles.image, animatedStyle]}
+              resizeMethod={'resize'}
+              source={getImageSource()}
+            />
+
+            <Animated.View
+              style={[styles.absolute, styles.right0, nextButtonAnimatedStyles]}
+            >
+              <ChevronIcon style={{ transform: [{ rotate: '180deg' }] }} />
+            </Animated.View>
+          </View>
+        </GestureDetector>
+      </GestureHandlerRootView>
+    </Animated.View>
+  ) : (
+    <></>
   );
 };
 
