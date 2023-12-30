@@ -1,4 +1,4 @@
 import CloseIcon from './CloseIcon.png';
-import ChevronIcon from './ChevronIcon';
+import ChevronIcon from './ChevronIcon.png';
 
 export { CloseIcon, ChevronIcon };

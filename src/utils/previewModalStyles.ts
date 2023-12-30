@@ -26,11 +26,11 @@ export const styles = StyleSheet.create({
   relative: {
     position: 'relative',
   },
-  left0: {
-    left: 0,
+  left10: {
+    left: 10,
   },
-  right0: {
-    right: 0,
+  right10: {
+    right: 10,
   },
   closeButtonContainerStyles: {
     position: 'absolute',
@@ -57,5 +57,17 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     flex: 1,
     alignItems: 'center',
+  },
+  chevronLeft: {
+    height: 20,
+    width: 20,
+    resizeMode: 'contain',
+    transform: [{ scaleX: 1 }],
+  },
+
+  chevronRight: {
+    height: 20,
+    width: 20,
+    resizeMode: 'contain',
   },
 });

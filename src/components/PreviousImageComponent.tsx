@@ -1,5 +1,5 @@
 import { styles } from '../utils/previewModalStyles';
-import ChevronIcon from '../assets/icons/ChevronIcon';
+import { ChevronIcon } from '../assets/icons';
 import Animated, {
   Extrapolation,
   interpolate,
@@ -8,6 +8,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import React from 'react';
 import { MAX_X_OFFSET } from '../utils/constants';
+import { Image } from 'react-native';
 
 const PreviousImageComponent: React.FC<{
   positionX: SharedValue<number>;
@@ -29,9 +30,9 @@ const PreviousImageComponent: React.FC<{
   return (
     <>
       <Animated.View
-        style={[styles.absolute, styles.left0, previousButtonAnimatedStyles]}
+        style={[styles.absolute, styles.left10, previousButtonAnimatedStyles]}
       >
-        <ChevronIcon />
+        <Image source={ChevronIcon} style={styles.chevronLeft} />
       </Animated.View>
     </>
   );
