@@ -8,7 +8,13 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-const ImageLoadingComponent: React.FC = () => {
+const ImageLoadingComponent: ({
+  isImageLoaded,
+  CustomLoadingComponent,
+}: {
+  isImageLoaded: boolean;
+  CustomLoadingComponent?: () => JSX.Element;
+}) => JSX.Element = ({ isImageLoaded, CustomLoadingComponent }) => {
   const animatedText = useSharedValue(1);
 
   const blinkingTextStyles = useAnimatedStyle(() => {
@@ -26,13 +32,19 @@ const ImageLoadingComponent: React.FC = () => {
     );
   }, [animatedText]);
 
-  return (
-    <View style={styles.imageLoaderStyles}>
-      <ActivityIndicator animating />
-      <Animated.Text style={[styles.blinkingText, blinkingTextStyles]}>
-        Loading...
-      </Animated.Text>
-    </View>
+  return !isImageLoaded ? (
+    CustomLoadingComponent ? (
+      <CustomLoadingComponent />
+    ) : (
+      <View style={styles.imageLoaderStyles}>
+        <ActivityIndicator animating />
+        <Animated.Text style={[styles.blinkingText, blinkingTextStyles]}>
+          Loading...
+        </Animated.Text>
+      </View>
+    )
+  ) : (
+    <></>
   );
 };
 
