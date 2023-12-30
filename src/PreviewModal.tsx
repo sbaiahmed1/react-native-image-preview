@@ -1,14 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Dimensions,
-  Image,
-  type ImageSourcePropType,
-  Pressable,
-  StyleSheet,
-  useWindowDimensions,
-  View,
-} from 'react-native';
+import React, { useState } from 'react';
+import { useWindowDimensions, View } from 'react-native';
 import {
   Gesture,
   GestureDetector,
@@ -21,17 +12,25 @@ import Animated, {
   FadeOutRight,
   interpolate,
   interpolateColor,
-  ReduceMotion,
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
-  withRepeat,
   withTiming,
 } from 'react-native-reanimated';
-import ChevronIcon from './assets/icons/ChevronIcon';
-import { BrokenImage } from './assets/images';
-import { isValidUrl } from './utils/validations';
-import { CloseIcon } from './assets/icons';
+import { onPanGestureEnd, onPanGestureUpdate } from './utils/panGestureUtils';
+import {
+  containerBackgroundOpacityRange,
+  containerBackgroundOutputRange,
+} from './utils/constants';
+import { styles } from './utils/previewModalStyles';
+import {
+  CloseModalComponent,
+  ImageLoadingComponent,
+  NextImageComponent,
+  PreviousImageComponent,
+} from './components';
+import { getImageSource } from './utils/imageHelper';
+import { onPinchGestureEnd } from './utils/pinchGestureUtils';
 
 /*
  * Modal component for previewing images with zoom and pan gestures.
@@ -44,74 +43,54 @@ const PreviewModal: React.FC<{
   isModalOpen: boolean;
   onCloseModal: () => void;
 }> = ({ isModalOpen, images, onCloseModal }) => {
-  const MAX_X_OFFSET = 100;
   const { height } = useWindowDimensions();
   const savedPositionX = useSharedValue(0);
   const positionX = useSharedValue(0);
-  const animatedText = useSharedValue(1);
   const savedPositionY = useSharedValue(0);
   const positionY = useSharedValue(0);
   const scale = useSharedValue(1);
   const savedScale = useSharedValue(1);
-  const [imageIndex, setImageIndex] = useState(1);
+  const [imageIndex, setImageIndex] = useState(0);
   const [isImageLoaded, setIsImageLoaded] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
 
   const pan = Gesture.Pan()
     .onUpdate((e) => {
-      if (
-        savedPositionX.value + e.translationX > 0 &&
-        savedPositionX.value + e.translationX < MAX_X_OFFSET * scale.value
-      ) {
-        positionX.value = e.translationX;
-      }
-
-      if (
-        savedPositionX.value + e.translationX < 0 &&
-        savedPositionX.value + e.translationX > -MAX_X_OFFSET * scale.value
-      ) {
-        positionX.value = e.translationX;
-      }
-
-      if (e.translationY + savedPositionY.value > 0 && scale.value === 1)
-        positionY.value = e.translationY + savedPositionY.value;
+      onPanGestureUpdate({
+        savedPositionX,
+        savedPositionY,
+        positionY,
+        scale,
+        positionX,
+        e,
+      });
     })
     .onEnd((e) => {
-      if (scale.value <= 1) {
-        positionX.value = withTiming(0, { duration: 100 });
-        positionY.value = withTiming(0, { duration: 100 });
-        savedPositionX.value = 0;
-        savedPositionY.value = 0;
-      } else {
-        savedPositionX.value = savedPositionX.value + e.translationX;
-        savedPositionY.value = savedPositionY.value + e.translationY;
-      }
-
-      if (
-        e.translationX > MAX_X_OFFSET &&
-        e.translationX > 0 &&
-        imageIndex > 0 &&
-        scale.value === 1
-      ) {
-        positionX.value = withTiming(0);
-        runOnJS(setIsImageLoaded)(false);
-        runOnJS(setError)(false);
-        runOnJS(setImageIndex)(imageIndex - 1);
-      }
-      if (
-        e.translationX < -MAX_X_OFFSET &&
-        imageIndex < images.length - 1 &&
-        scale.value === 1
-      ) {
-        runOnJS(setImageIndex)(imageIndex + 1);
-        runOnJS(setIsImageLoaded)(false);
-        runOnJS(setError)(false);
-        positionX.value = withTiming(0);
-      }
-
-      if ((e.translationY > 200 || e.translationY < -200) && scale.value <= 1) {
-        runOnJS(onCloseModal)();
-      }
+      onPanGestureEnd({
+        e,
+        imageIndex,
+        savedPositionX,
+        positionY,
+        positionX,
+        savedPositionY,
+        scale,
+        imagesLength: images?.length,
+        swipeLeftCallback: () => {
+          positionX.value = withTiming(0);
+          runOnJS(setIsImageLoaded)(false);
+          runOnJS(setError)(false);
+          runOnJS(setImageIndex)(imageIndex - 1);
+        },
+        swipeRightCallback: () => {
+          runOnJS(setImageIndex)(imageIndex + 1);
+          runOnJS(setIsImageLoaded)(false);
+          runOnJS(setError)(false);
+          positionX.value = withTiming(0);
+        },
+        closeModalCallback: () => {
+          runOnJS(onCloseModal)();
+        },
+      });
     });
 
   const doubleTap = Gesture.Tap()
@@ -136,23 +115,21 @@ const PreviewModal: React.FC<{
       scale.value = Math.min(savedScale.value * event.scale, 4);
     })
     .onEnd(() => {
-      savedScale.value = scale.value;
-      if (scale.value < 1) {
-        scale.value = withTiming(1);
-        savedScale.value = 1;
-
-        positionX.value = withTiming(0, { duration: 100 });
-        positionY.value = withTiming(0, { duration: 100 });
-        savedPositionX.value = 0;
-        savedPositionY.value = 0;
-      }
+      onPinchGestureEnd({
+        scale,
+        savedScale,
+        savedPositionX,
+        savedPositionY,
+        positionY,
+        positionX,
+      });
     });
 
   const animatedStyle = useAnimatedStyle(() => {
     const opacity = interpolate(
       positionY.value,
       [-height / 2, -200, -100, 0, 100, 200, height / 2],
-      [0, 0.75, 1, 1, 1, 0.75, 0],
+      containerBackgroundOpacityRange,
       Extrapolation.CLAMP
     );
 
@@ -170,89 +147,14 @@ const PreviewModal: React.FC<{
     const backgroundColor = interpolateColor(
       positionY.value,
       [-height / 2, -200, -100, 0, 100, 200, height / 2],
-      [
-        '#FFFFFF00',
-        '#FFFFFFBF',
-        '#000000',
-        '#000000',
-        '#000000',
-        '#FFFFFFBF',
-        '#FFFFFF00',
-      ]
+      containerBackgroundOutputRange
     );
     return {
       backgroundColor: scale.value > 1 ? 'black' : backgroundColor,
     };
   });
 
-  const nextButtonAnimatedStyles = useAnimatedStyle(() => {
-    const opacity = interpolate(
-      positionX.value,
-      [-50, -MAX_X_OFFSET],
-      [0, 1],
-      Extrapolation.CLAMP
-    );
-    return {
-      opacity:
-        imageIndex < images.length - 1 && scale.value === 1 ? opacity : 0,
-    };
-  });
-
-  const previousButtonAnimatedStyles = useAnimatedStyle(() => {
-    const opacity = interpolate(
-      positionX.value,
-      [50, MAX_X_OFFSET],
-      [0, 1],
-      Extrapolation.CLAMP
-    );
-    return {
-      opacity: imageIndex > 0 && scale.value === 1 ? opacity : 0,
-    };
-  });
-  useEffect(() => {
-    animatedText.value = withRepeat(
-      withTiming(0.3, { duration: 1000, reduceMotion: ReduceMotion.System }),
-      -1,
-      true
-    );
-  }, [animatedText]);
-
-  const blinkingTextStyles = useAnimatedStyle(() => {
-    const opacity = animatedText.value;
-    return {
-      opacity: opacity,
-    };
-  });
-
   const composedGestures = Gesture.Race(doubleTap, pan, pinch);
-
-  //
-  const getImageSource = (): ImageSourcePropType => {
-    // Basic checks to prevent errors
-    // Return broken image if error or invalid images array
-    if (error || !Array.isArray(images)) {
-      return BrokenImage;
-    }
-
-    return fetchImageAtIndex(imageIndex);
-  };
-
-  const fetchImageAtIndex = (index: number): ImageSourcePropType => {
-    // Check if the index is within bounds
-    if (index >= images.length) {
-      return BrokenImage;
-    }
-
-    // Check the type of the image at the index and return accordingly
-    const imageAtIndex = images[index];
-    if (typeof imageAtIndex === 'string') {
-      return isValidUrl(imageAtIndex) ? { uri: imageAtIndex } : BrokenImage;
-    } else if (typeof imageAtIndex === 'number') {
-      return imageAtIndex;
-    }
-
-    return BrokenImage;
-  };
 
   return isModalOpen ? (
     <Animated.View
@@ -262,36 +164,13 @@ const PreviewModal: React.FC<{
       <GestureHandlerRootView style={styles.fullFlex}>
         <GestureDetector gesture={composedGestures}>
           <View style={styles.flexRowCenter}>
-            <Pressable
-              hitSlop={20}
-              onPress={onCloseModal}
-              style={styles.closeButtonContainerStyles}
-            >
-              <Image
-                style={styles.closeButtonStyles}
-                tintColor={'white'}
-                source={CloseIcon}
-              />
-            </Pressable>
-            <Animated.View
-              style={[
-                styles.absolute,
-                styles.left0,
-                previousButtonAnimatedStyles,
-              ]}
-            >
-              <ChevronIcon />
-            </Animated.View>
-            {!isImageLoaded && (
-              <View style={styles.imageLoaderStyles}>
-                <ActivityIndicator animating />
-                <Animated.Text
-                  style={[styles.blinkingText, blinkingTextStyles]}
-                >
-                  Loading...
-                </Animated.Text>
-              </View>
-            )}
+            <CloseModalComponent onCloseModal={onCloseModal} />
+            <PreviousImageComponent
+              imageIndex={imageIndex}
+              scale={scale}
+              positionX={positionX}
+            />
+            {!isImageLoaded && <ImageLoadingComponent />}
             <Animated.Image
               onLoadEnd={() => {
                 setIsImageLoaded(true);
@@ -306,14 +185,15 @@ const PreviewModal: React.FC<{
               fadeDuration={500}
               style={[styles.image, animatedStyle]}
               resizeMethod={'resize'}
-              source={getImageSource()}
+              source={getImageSource(imageIndex, images, error)}
             />
 
-            <Animated.View
-              style={[styles.absolute, styles.right0, nextButtonAnimatedStyles]}
-            >
-              <ChevronIcon style={{ transform: [{ rotate: '180deg' }] }} />
-            </Animated.View>
+            <NextImageComponent
+              positionX={positionX}
+              imageIndex={imageIndex}
+              imagesLength={images?.length}
+              scale={scale}
+            />
           </View>
         </GestureDetector>
       </GestureHandlerRootView>
@@ -322,65 +202,5 @@ const PreviewModal: React.FC<{
     <></>
   );
 };
-
-/**
- * Represents a collection of style objects.
- */
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 999,
-  },
-  image: {
-    width: Dimensions.get('screen').width,
-    height: Dimensions.get('screen').height / 3,
-    resizeMode: 'contain',
-  },
-  absolute: {
-    position: 'absolute',
-  },
-  relative: {
-    position: 'relative',
-  },
-  left0: {
-    left: 0,
-  },
-  right0: {
-    right: 0,
-  },
-  closeButtonContainerStyles: {
-    position: 'absolute',
-    top: 100,
-    right: 20,
-  },
-  closeButtonStyles: { height: 15, width: 15, resizeMode: 'contain' },
-  fullFlex: { flex: 1 },
-  blinkingText: {
-    color: 'white',
-    paddingVertical: 10,
-    textAlign: 'center',
-  },
-  imageLoaderStyles: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  flexRowCenter: {
-    flexDirection: 'row',
-    flex: 1,
-    alignItems: 'center',
-  },
-});
 
 export default PreviewModal;
