@@ -105,6 +105,15 @@ const styles = StyleSheet.create({
 
 ## Démo
 <img src="example/PreviewModal.gif" alt='Demo video'>
+
+## Supported Props (others will be added)
+
+| Props            | Default |         Type          | Description                                    |
+|:-----------------|:-------:|:---------------------:|:-----------------------------------------------|
+| **images**       |   []    | ImageSourcePropType[] | Array of images to be shown                    |
+| **isModalOpen**  |  false  |        boolean        | A boolean defining if the modal is open or not |
+| **onCloseModal** | ()=> {} |       Function        | executes a callback closing the modal          |
+
 ## Contributing
 
 See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
