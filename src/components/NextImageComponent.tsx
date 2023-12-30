@@ -15,7 +15,14 @@ const NextImageComponent: React.FC<{
   imageIndex: number;
   imagesLength: number;
   scale: SharedValue<number>;
-}> = ({ positionX, imageIndex, scale, imagesLength }) => {
+  CustomNextImageComponent?: () => JSX.Element;
+}> = ({
+  positionX,
+  imageIndex,
+  scale,
+  imagesLength,
+  CustomNextImageComponent,
+}) => {
   const nextButtonAnimatedStyles = useAnimatedStyle(() => {
     const opacity = interpolate(
       positionX.value,
@@ -33,7 +40,11 @@ const NextImageComponent: React.FC<{
       <Animated.View
         style={[styles.absolute, styles.right10, nextButtonAnimatedStyles]}
       >
-        <Image source={ChevronIcon} style={styles.chevronRight} />
+        {CustomNextImageComponent ? (
+          <CustomNextImageComponent />
+        ) : (
+          <Image source={ChevronIcon} style={styles.chevronRight} />
+        )}
       </Animated.View>
     </>
   );

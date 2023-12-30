@@ -170,7 +170,7 @@ const PreviewModal: React.FC<{
               scale={scale}
               positionX={positionX}
             />
-            {!isImageLoaded && <ImageLoadingComponent />}
+            <ImageLoadingComponent isImageLoaded={isImageLoaded} />
             <Animated.Image
               onLoadEnd={() => {
                 setIsImageLoaded(true);

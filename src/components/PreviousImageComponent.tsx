@@ -14,7 +14,8 @@ const PreviousImageComponent: React.FC<{
   positionX: SharedValue<number>;
   imageIndex: number;
   scale: SharedValue<number>;
-}> = ({ positionX, imageIndex, scale }) => {
+  CustomPreviousImageComponent?: () => JSX.Element;
+}> = ({ positionX, imageIndex, scale, CustomPreviousImageComponent }) => {
   const previousButtonAnimatedStyles = useAnimatedStyle(() => {
     const opacity = interpolate(
       positionX.value,
@@ -32,7 +33,11 @@ const PreviousImageComponent: React.FC<{
       <Animated.View
         style={[styles.absolute, styles.left10, previousButtonAnimatedStyles]}
       >
-        <Image source={ChevronIcon} style={styles.chevronLeft} />
+        {CustomPreviousImageComponent ? (
+          <CustomPreviousImageComponent />
+        ) : (
+          <Image source={ChevronIcon} style={styles.chevronLeft} />
+        )}
       </Animated.View>
     </>
   );
