@@ -5,11 +5,11 @@ React native image previewer made with Reanimated RNGH
 ## Installation
 
 ```sh
-npm install react-native-image-preview
+npm install react-native-image-preview-reanimated
 ```
 or with Yarn
 ```sh
-yarn add react-native-image-preview
+yarn add react-native-image-preview-reanimated
 ```
 If you have already installed Reanimated and React native Gesture Handler you're already setup, else follow these steps
 
