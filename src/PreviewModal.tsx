@@ -37,10 +37,12 @@ import { CloseIcon } from './assets/icons';
 /**
  * Modal component for previewing images with zoom and pan gestures.
  * @component
- * @param {string[]} images - An array of image URLs or a single image URL.
+ * @param {string[]|number[]} images - An array of image URLs or a single image URL.
  * @returns {ReactElement} - React component
  */
-const PreviewModal: React.FC<{ images: string[] }> = ({ images }) => {
+const PreviewModal: React.FC<{ images: string[] | number[] }> = ({
+  images,
+}) => {
   const MAX_X_OFFSET = 100;
   const { height } = useWindowDimensions();
   const savedPositionX = useSharedValue(0);
@@ -232,13 +234,10 @@ const PreviewModal: React.FC<{ images: string[] }> = ({ images }) => {
       return BrokenImage;
     }
 
-    return fetchImageAtIndex(images, imageIndex);
+    return fetchImageAtIndex(imageIndex);
   };
 
-  const fetchImageAtIndex = (
-    images: any[],
-    index: number
-  ): ImageSourcePropType => {
+  const fetchImageAtIndex = (index: number): ImageSourcePropType => {
     // Check if the index is within bounds
     if (index >= images.length) {
       return BrokenImage;
@@ -271,15 +270,9 @@ const PreviewModal: React.FC<{ images: string[] }> = ({ images }) => {
           exiting={FadeOut}
           style={[styles.container, containerAnimatedStyle]}
         >
-          <GestureHandlerRootView style={{ flex: 1 }}>
+          <GestureHandlerRootView style={styles.fullFlex}>
             <GestureDetector gesture={composedGestures}>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  flex: 1,
-                  alignItems: 'center',
-                }}
-              >
+              <View style={styles.flexRowCenter}>
                 <Pressable
                   hitSlop={20}
                   onPress={() => setIsModalOpen(false)}
@@ -301,28 +294,10 @@ const PreviewModal: React.FC<{ images: string[] }> = ({ images }) => {
                   <ChevronIcon />
                 </Animated.View>
                 {!isImageLoaded && (
-                  <View
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      zIndex: 1000,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
+                  <View style={styles.imageLoaderStyles}>
                     <ActivityIndicator animating />
                     <Animated.Text
-                      style={[
-                        {
-                          color: 'white',
-                          paddingVertical: 10,
-                          textAlign: 'center',
-                        },
-                        blinkingTextStyles,
-                      ]}
+                      style={[styles.blinkingText, blinkingTextStyles]}
                     >
                       Loading...
                     </Animated.Text>
@@ -401,6 +376,26 @@ const styles = StyleSheet.create({
     right: 20,
   },
   closeButtonStyles: { height: 15, width: 15, resizeMode: 'contain' },
+  fullFlex: { flex: 1 },
+  blinkingText: {
+    color: 'white',
+    paddingVertical: 10,
+    textAlign: 'center',
+  },
+  imageLoaderStyles: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  flexRowCenter: {
+    flexDirection: 'row',
+    flex: 1,
+    alignItems: 'center',
+  },
 });
 
 export default PreviewModal;
