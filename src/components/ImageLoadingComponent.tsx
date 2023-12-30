@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { styles } from '../utils/previewModalStyles';
 import { ActivityIndicator, View } from 'react-native';
 import Animated, {
-  ReduceMotion,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
@@ -21,7 +20,7 @@ const ImageLoadingComponent: React.FC = () => {
 
   useEffect(() => {
     animatedText.value = withRepeat(
-      withTiming(0.3, { duration: 1000, reduceMotion: ReduceMotion.System }),
+      withTiming(0.3, { duration: 1000 }),
       -1,
       true
     );
