@@ -108,14 +108,18 @@ const styles = StyleSheet.create({
 
 ## Supported Props (others will be added)
 
-| Props                            |  Default  |         Type          | Description                                      |
-|:---------------------------------|:---------:|:---------------------:|:-------------------------------------------------|
-| **images**                       |    []     | ImageSourcePropType[] | Array of images to be shown                      |
-| **isModalOpen**                  |   false   |        boolean        | A boolean defining if the modal is open or not   |
-| **onCloseModal**                 |  ()=> {}  |       Function        | executes a callback closing the modal            |
-| **CustomPreviousImageComponent** | undefined |   ()=> JSX.Element    | Allows us to set custom previous image component |
-| **CustomNextImageComponent**     | undefined |   ()=> JSX.Element    | Allows us to set custom next image component     |
-| **CustomLoadingComponent**       | undefined |   ()=> JSX.Element    | Allows us to set custom image loader component   |
+| Props                            |  Default  |         Type          | Description                                                    |
+|:---------------------------------|:---------:|:---------------------:|:---------------------------------------------------------------|
+| **images**                       |    []     | ImageSourcePropType[] | Array of images to be shown                                    |
+| **isModalOpen**                  |   false   |        boolean        | A boolean defining if the modal is open or not                 |
+| **isPanGestureEnabled**          |   true    |        boolean        | A boolean defining if the pan gesture is enabled or not        |
+| **isPinchGestureEnabled**        |   true    |        boolean        | A boolean defining if the pinch gesture is enabled or not      |
+| **isDoubleTapToZoomEnabled**     |   true    |        boolean        | A boolean defining if the double tap gesture is enabled or not |
+| **isSwipeToDismissEnabled**      |   true    |        boolean        | A boolean defining if the modal should swipe to dismiss        |
+| **onCloseModal**                 |  ()=> {}  |       Function        | executes a callback closing the modal                          |
+| **CustomPreviousImageComponent** | undefined |   ()=> JSX.Element    | Allows us to set custom previous image component               |
+| **CustomNextImageComponent**     | undefined |   ()=> JSX.Element    | Allows us to set custom next image component                   |
+| **CustomLoadingComponent**       | undefined |   ()=> JSX.Element    | Allows us to set custom image loader component                 |
 
 ## Contributing
 
