@@ -38,11 +38,31 @@ import { onPinchGestureEnd } from './utils/pinchGestureUtils';
  * @returns {ReactElement} - React component
  */
 
-const PreviewModal: React.FC<{
+interface PreviewModalProps {
   images: string[] | number[];
   isModalOpen: boolean;
+  isPanGestureEnabled?: boolean;
+  isPinchGestureEnabled?: boolean;
+  isDoubleTapToZoomEnabled?: boolean;
+  isSwipeToDismissEnabled?: boolean;
   onCloseModal: () => void;
-}> = ({ isModalOpen = false, images = [], onCloseModal }) => {
+  CustomLoadingComponent?: () => JSX.Element;
+  CustomPreviousImageComponent?: () => JSX.Element;
+  CustomNextImageComponent?: () => JSX.Element;
+}
+
+const PreviewModal: React.FC<PreviewModalProps> = ({
+  isModalOpen = false,
+  images = [],
+  onCloseModal,
+  CustomLoadingComponent,
+  CustomNextImageComponent,
+  CustomPreviousImageComponent,
+  isPanGestureEnabled = true,
+  isPinchGestureEnabled = true,
+  isDoubleTapToZoomEnabled = true,
+  isSwipeToDismissEnabled = true,
+}) => {
   const { height } = useWindowDimensions();
   const savedPositionX = useSharedValue(0);
   const positionX = useSharedValue(0);
@@ -55,6 +75,7 @@ const PreviewModal: React.FC<{
   const [error, setError] = useState<boolean>(false);
 
   const pan = Gesture.Pan()
+    .enabled(isPanGestureEnabled)
     .onUpdate((e) => {
       onPanGestureUpdate({
         savedPositionX,
@@ -88,12 +109,13 @@ const PreviewModal: React.FC<{
           positionX.value = withTiming(0);
         },
         closeModalCallback: () => {
-          runOnJS(onCloseModal)();
+          isSwipeToDismissEnabled && runOnJS(onCloseModal)();
         },
       });
     });
 
   const doubleTap = Gesture.Tap()
+    .enabled(isDoubleTapToZoomEnabled)
     .maxDuration(250)
     .numberOfTaps(2)
     .onStart(() => {
@@ -111,6 +133,7 @@ const PreviewModal: React.FC<{
     });
 
   const pinch = Gesture.Pinch()
+    .enabled(isPinchGestureEnabled)
     .onUpdate((event) => {
       scale.value = Math.min(savedScale.value * event.scale, 4);
     })
@@ -156,6 +179,30 @@ const PreviewModal: React.FC<{
 
   const composedGestures = Gesture.Race(doubleTap, pan, pinch);
 
+  // Methods
+  /**
+   * Function handleImageLoadEnd
+   *
+   * This function is used to handle the completion of image loading.
+   * It sets the value of the isImageLoaded state variable to true.
+   *
+   * @function
+   * @name handleImageLoadEnd
+   * @returns {void}
+   */
+  const handleImageLoadEnd = (): void => {
+    setIsImageLoaded(true);
+  };
+
+  /**
+   * Sets the error state to true.
+   *
+   * @function handleError
+   */
+  const handleError = () => {
+    setError(true);
+  };
+
   return isModalOpen ? (
     <Animated.View
       exiting={FadeOut}
@@ -166,18 +213,18 @@ const PreviewModal: React.FC<{
           <View style={styles.flexRowCenter}>
             <CloseModalComponent onCloseModal={onCloseModal} />
             <PreviousImageComponent
+              CustomPreviousImageComponent={CustomPreviousImageComponent}
               imageIndex={imageIndex}
               scale={scale}
               positionX={positionX}
             />
-            <ImageLoadingComponent isImageLoaded={isImageLoaded} />
+            <ImageLoadingComponent
+              CustomLoadingComponent={CustomLoadingComponent}
+              isImageLoaded={isImageLoaded}
+            />
             <Animated.Image
-              onLoadEnd={() => {
-                setIsImageLoaded(true);
-              }}
-              onError={() => {
-                setError(true);
-              }}
+              onLoadEnd={handleImageLoadEnd}
+              onError={handleError}
               entering={FadeInRight.duration(200)}
               exiting={FadeOutRight.duration(200)}
               resizeMode={'contain'}
@@ -189,6 +236,7 @@ const PreviewModal: React.FC<{
             />
 
             <NextImageComponent
+              CustomNextImageComponent={CustomNextImageComponent}
               positionX={positionX}
               imageIndex={imageIndex}
               imagesLength={images?.length}
