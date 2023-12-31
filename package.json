@@ -1,6 +1,6 @@
 {
   "name": "react-native-image-preview-reanimated",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "React native image previewer made with Reanimated RNGH",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
