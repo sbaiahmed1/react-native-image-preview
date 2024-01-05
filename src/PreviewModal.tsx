@@ -1,18 +1,20 @@
-import React, { useState } from 'react';
-import { useWindowDimensions, View } from 'react-native';
+import React, { type Ref, useState } from 'react';
+import { FlatList, useWindowDimensions, View } from 'react-native';
 import {
   Gesture,
   GestureDetector,
   GestureHandlerRootView,
 } from 'react-native-gesture-handler';
 import Animated, {
+  type AnimatedRef,
   Extrapolation,
-  FadeInRight,
+  FadeIn,
   FadeOut,
-  FadeOutRight,
   interpolate,
   interpolateColor,
   runOnJS,
+  scrollTo,
+  useAnimatedRef,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -27,10 +29,12 @@ import {
   CloseModalComponent,
   ImageLoadingComponent,
   NextImageComponent,
+  PaginationComponent,
   PreviousImageComponent,
 } from './components';
 import { getImageSource } from './utils/imageHelper';
 import { onPinchGestureEnd } from './utils/pinchGestureUtils';
+import { BrokenImage } from './assets/images';
 
 /*
  * Modal component for previewing images with zoom and pan gestures.
@@ -39,6 +43,7 @@ import { onPinchGestureEnd } from './utils/pinchGestureUtils';
  */
 
 interface PreviewModalProps {
+  testID?: string;
   images: string[] | number[];
   isModalOpen: boolean;
   isPanGestureEnabled?: boolean;
@@ -49,6 +54,7 @@ interface PreviewModalProps {
   CustomLoadingComponent?: () => JSX.Element;
   CustomPreviousImageComponent?: () => JSX.Element;
   CustomNextImageComponent?: () => JSX.Element;
+  errorImageUrl?: number;
 }
 
 const PreviewModal: React.FC<PreviewModalProps> = ({
@@ -62,6 +68,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
   isPinchGestureEnabled = true,
   isDoubleTapToZoomEnabled = true,
   isSwipeToDismissEnabled = true,
+  errorImageUrl,
 }) => {
   const { height } = useWindowDimensions();
   const savedPositionX = useSharedValue(0);
@@ -73,6 +80,9 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
   const [imageIndex, setImageIndex] = useState(0);
   const [isImageLoaded, setIsImageLoaded] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
+
+  // Refs
+  const indicatorsRef = useAnimatedRef<FlatList<string | number>>();
 
   const pan = Gesture.Pan()
     .enabled(isPanGestureEnabled)
@@ -101,11 +111,13 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
           runOnJS(setIsImageLoaded)(false);
           runOnJS(setError)(false);
           runOnJS(setImageIndex)(imageIndex - 1);
+          scrollTo(indicatorsRef, (imageIndex - 1) * 17, 0, true);
         },
         swipeRightCallback: () => {
           runOnJS(setImageIndex)(imageIndex + 1);
           runOnJS(setIsImageLoaded)(false);
           runOnJS(setError)(false);
+          scrollTo(indicatorsRef, (imageIndex + 1) * 17, 0, true);
           positionX.value = withTiming(0);
         },
         closeModalCallback: () => {
@@ -205,6 +217,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
 
   return isModalOpen ? (
     <Animated.View
+      entering={FadeIn}
       exiting={FadeOut}
       style={[styles.container, containerAnimatedStyle]}
     >
@@ -225,14 +238,14 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
             <Animated.Image
               onLoadEnd={handleImageLoadEnd}
               onError={handleError}
-              entering={FadeInRight.duration(200)}
-              exiting={FadeOutRight.duration(200)}
+              entering={FadeIn.delay(100).duration(200)}
+              exiting={FadeOut.duration(200)}
               resizeMode={'contain'}
               key={images[imageIndex]}
               fadeDuration={500}
               style={[styles.image, animatedStyle]}
               resizeMethod={'resize'}
-              source={getImageSource(imageIndex, images, error)}
+              source={getImageSource(imageIndex, images, error, errorImageUrl)}
             />
 
             <NextImageComponent
@@ -242,6 +255,20 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
               imagesLength={images?.length}
               scale={scale}
             />
+            <PaginationComponent
+              positionY={positionY}
+              scale={scale}
+              images={images}
+              onIndicatorPress={(index: number) => {
+                scrollTo(indicatorsRef, index * 17, 0, true);
+                setImageIndex(index);
+                setIsImageLoaded(false);
+                setError(false);
+              }}
+              imageIndex={imageIndex}
+              positionX={positionX}
+              ref={indicatorsRef as Ref<AnimatedRef<FlatList<string | number>>>}
+            />
           </View>
         </GestureDetector>
       </GestureHandlerRootView>
@@ -249,6 +276,17 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
   ) : (
     <></>
   );
+};
+
+PreviewModal.defaultProps = {
+  testID: 'PreviewModal',
+  isModalOpen: false,
+  images: [],
+  isPanGestureEnabled: true,
+  isPinchGestureEnabled: true,
+  isDoubleTapToZoomEnabled: true,
+  isSwipeToDismissEnabled: true,
+  errorImageUrl: BrokenImage,
 };
 
 export default PreviewModal;
