@@ -37,7 +37,10 @@
   "keywords": [
     "react-native",
     "ios",
-    "android"
+    "android",
+    "react native image viewer",
+    "image viewer",
+    "image modal"
   ],
   "repository": "https://github.com/sbaiahmed1/react-native-image-preview",
   "author": "Ahmed Sbai <ahmedclubust@gmail.com> (https://github.com/sbaiahmed1)",
