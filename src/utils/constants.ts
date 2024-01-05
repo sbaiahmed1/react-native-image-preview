@@ -1,3 +1,6 @@
+import Animated from 'react-native-reanimated';
+import { Pressable } from 'react-native';
+
 export const MAX_X_OFFSET: number = 100;
 
 export const containerBackgroundOutputRange = [
@@ -11,3 +14,5 @@ export const containerBackgroundOutputRange = [
 ];
 
 export const containerBackgroundOpacityRange = [0, 0.75, 1, 1, 1, 0.75, 0];
+
+export const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
