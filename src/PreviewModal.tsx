@@ -55,6 +55,7 @@ interface PreviewModalProps {
   CustomPreviousImageComponent?: () => JSX.Element;
   CustomNextImageComponent?: () => JSX.Element;
   errorImageUrl?: number;
+  showPaginationComponent?: boolean;
 }
 
 const PreviewModal: React.FC<PreviewModalProps> = ({
@@ -69,6 +70,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
   isDoubleTapToZoomEnabled = true,
   isSwipeToDismissEnabled = true,
   errorImageUrl,
+  showPaginationComponent,
 }) => {
   const { height } = useWindowDimensions();
   const savedPositionX = useSharedValue(0);
@@ -255,20 +257,24 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
               imagesLength={images?.length}
               scale={scale}
             />
-            <PaginationComponent
-              positionY={positionY}
-              scale={scale}
-              images={images}
-              onIndicatorPress={(index: number) => {
-                scrollTo(indicatorsRef, index * 17, 0, true);
-                setImageIndex(index);
-                setIsImageLoaded(false);
-                setError(false);
-              }}
-              imageIndex={imageIndex}
-              positionX={positionX}
-              ref={indicatorsRef as Ref<AnimatedRef<FlatList<string | number>>>}
-            />
+            {showPaginationComponent && (
+              <PaginationComponent
+                positionY={positionY}
+                scale={scale}
+                images={images}
+                onIndicatorPress={(index: number) => {
+                  scrollTo(indicatorsRef, index * 17, 0, true);
+                  setImageIndex(index);
+                  setIsImageLoaded(false);
+                  setError(false);
+                }}
+                imageIndex={imageIndex}
+                positionX={positionX}
+                ref={
+                  indicatorsRef as Ref<AnimatedRef<FlatList<string | number>>>
+                }
+              />
+            )}
           </View>
         </GestureDetector>
       </GestureHandlerRootView>
@@ -287,6 +293,7 @@ PreviewModal.defaultProps = {
   isDoubleTapToZoomEnabled: true,
   isSwipeToDismissEnabled: true,
   errorImageUrl: BrokenImage,
+  showPaginationComponent: true,
 };
 
 export default PreviewModal;
