@@ -1,4 +1,4 @@
-# react-native-image-preview
+# react-native-image-preview-reanimated
 
 React native image previewer made with Reanimated RNGH
 
@@ -51,7 +51,7 @@ import 'react-native-gesture-handler';
 ## Usage
 
 ```js
-import { PreviewModal } from 'react-native-image-preview';
+import { PreviewModal } from 'react-native-image-preview-reanimated';
 
 // ...
 <PreviewModal onCloseModal={onCloseModal} isModalOpen={isModalOpen} images={[]}/>
@@ -63,7 +63,7 @@ import * as React from 'react';
 import { useState } from 'react';
 
 import { Button, StyleSheet, View } from 'react-native';
-import { PreviewModal } from 'react-native-image-preview';
+import { PreviewModal } from 'react-native-image-preview-reanimated';
 
 export default function App() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
