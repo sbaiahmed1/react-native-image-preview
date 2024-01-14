@@ -1,6 +1,4 @@
 import {
-  BaseAnimationBuilder,
-  type EntryExitAnimationFunction,
   FadeIn,
   FadeInDown,
   FadeInLeft,
@@ -21,10 +19,7 @@ import {
   SlideOutUp,
 } from 'react-native-reanimated';
 
-type EntryOrExitLayoutType =
-  | BaseAnimationBuilder
-  | typeof BaseAnimationBuilder
-  | EntryExitAnimationFunction;
+type EntryOrExitLayoutType = typeof FadeIn;
 
 /**
  * Represents a fade-in animation class.
@@ -69,7 +64,7 @@ export type animations = fadeOut | fadeIn | slideOut | slideIn;
  * @param {animations} modalAnimationIn - The modal animation type.
  * @returns {EntryOrExitLayoutType} - The animation for the given modal animation type.
  */
-export const getModalAnimationIn = (
+export const getAnimationIn = (
   modalAnimationIn: animations
 ): EntryOrExitLayoutType => {
   switch (modalAnimationIn) {
@@ -102,7 +97,7 @@ export const getModalAnimationIn = (
  * @param {animations} modalAnimationOut - The modal animation type.
  * @returns {EntryOrExitLayoutType} - The animation for the given modal animation type.
  */
-export const getModalAnimationOut = (
+export const getAnimationOut = (
   modalAnimationOut: animations
 ): EntryOrExitLayoutType => {
   switch (modalAnimationOut) {

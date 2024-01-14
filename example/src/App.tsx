@@ -14,6 +14,8 @@ export default function App() {
         onCloseModal={() => {
           setIsModalOpen(false);
         }}
+        imageAnimationIn={'slideIn-down'}
+        imageAniationOut={'slideOut-down'}
         modalAnimationIn={'slideIn-down'}
         modalAnimationOut={'slideOut-down'}
         isModalOpen={isModalOpen}

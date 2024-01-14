@@ -8,8 +8,6 @@ import {
 import Animated, {
   type AnimatedRef,
   Extrapolation,
-  FadeIn,
-  FadeOut,
   interpolate,
   interpolateColor,
   runOnJS,
@@ -37,8 +35,8 @@ import { onPinchGestureEnd } from './utils/pinchGestureUtils';
 import { BrokenImage } from './assets/images';
 import {
   type animations,
-  getModalAnimationIn,
-  getModalAnimationOut,
+  getAnimationIn,
+  getAnimationOut,
 } from './utils/modalAnimation';
 
 /*
@@ -63,6 +61,8 @@ interface PreviewModalProps {
   showPaginationComponent?: boolean;
   modalAnimationIn: animations;
   modalAnimationOut: animations;
+  imageAnimationIn: animations;
+  imageAnimationOut: animations;
 }
 
 const PreviewModal: React.FC<PreviewModalProps> = ({
@@ -80,6 +80,8 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
   showPaginationComponent,
   modalAnimationIn = 'fadeIn',
   modalAnimationOut = 'fadeOut',
+  imageAnimationIn = 'slideIn-right',
+  imageAnimationOut = 'slideOut-right',
 }) => {
   const { height } = useWindowDimensions();
   const savedPositionX = useSharedValue(0);
@@ -228,8 +230,8 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
 
   return isModalOpen ? (
     <Animated.View
-      entering={getModalAnimationIn(modalAnimationIn)}
-      exiting={getModalAnimationOut(modalAnimationOut)}
+      entering={getAnimationIn(modalAnimationIn)}
+      exiting={getAnimationOut(modalAnimationOut)}
       style={[styles.container, containerAnimatedStyle]}
     >
       <GestureHandlerRootView style={styles.fullFlex}>
@@ -249,8 +251,10 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
             <Animated.Image
               onLoadEnd={handleImageLoadEnd}
               onError={handleError}
-              entering={FadeIn.delay(100).duration(200)}
-              exiting={FadeOut.duration(200)}
+              entering={getAnimationIn(imageAnimationIn)
+                .delay(100)
+                .duration(200)}
+              exiting={getAnimationOut(imageAnimationOut).duration(200)}
               resizeMode={'contain'}
               key={images[imageIndex]}
               fadeDuration={500}
@@ -305,6 +309,8 @@ PreviewModal.defaultProps = {
   showPaginationComponent: true,
   modalAnimationIn: 'fadeIn',
   modalAnimationOut: 'fadeOut',
+  imageAnimationIn: 'fadeIn',
+  imageAnimationOut: 'fadeOut',
 };
 
 export default PreviewModal;
