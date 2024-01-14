@@ -2,7 +2,8 @@ import * as React from 'react';
 import { useState } from 'react';
 
 import { Button, StyleSheet, View } from 'react-native';
-import { PreviewModal } from 'react-native-image-preview';
+// @ts-ignore
+import { PreviewModal } from 'react-native-image-preview-reanimated';
 
 export default function App() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
