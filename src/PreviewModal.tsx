@@ -35,6 +35,11 @@ import {
 import { getImageSource } from './utils/imageHelper';
 import { onPinchGestureEnd } from './utils/pinchGestureUtils';
 import { BrokenImage } from './assets/images';
+import {
+  type animations,
+  getModalAnimationIn,
+  getModalAnimationOut,
+} from './utils/modalAnimation';
 
 /*
  * Modal component for previewing images with zoom and pan gestures.
@@ -56,6 +61,8 @@ interface PreviewModalProps {
   CustomNextImageComponent?: () => JSX.Element;
   errorImageUrl?: number;
   showPaginationComponent?: boolean;
+  modalAnimationIn: animations;
+  modalAnimationOut: animations;
 }
 
 const PreviewModal: React.FC<PreviewModalProps> = ({
@@ -71,6 +78,8 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
   isSwipeToDismissEnabled = true,
   errorImageUrl,
   showPaginationComponent,
+  modalAnimationIn = 'fadeIn',
+  modalAnimationOut = 'fadeOut',
 }) => {
   const { height } = useWindowDimensions();
   const savedPositionX = useSharedValue(0);
@@ -219,8 +228,8 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
 
   return isModalOpen ? (
     <Animated.View
-      entering={FadeIn}
-      exiting={FadeOut}
+      entering={getModalAnimationIn(modalAnimationIn)}
+      exiting={getModalAnimationOut(modalAnimationOut)}
       style={[styles.container, containerAnimatedStyle]}
     >
       <GestureHandlerRootView style={styles.fullFlex}>
@@ -294,6 +303,8 @@ PreviewModal.defaultProps = {
   isSwipeToDismissEnabled: true,
   errorImageUrl: BrokenImage,
   showPaginationComponent: true,
+  modalAnimationIn: 'fadeIn',
+  modalAnimationOut: 'fadeOut',
 };
 
 export default PreviewModal;
