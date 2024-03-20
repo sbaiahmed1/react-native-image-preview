@@ -31,7 +31,7 @@ cd ios && pod install
 3- Make sure to add Reanimated babel plugin to babel.config.js
 
 PS: make sure to put it last
-```
+```js
 module.exports = {
       ...
       plugins: [
@@ -44,7 +44,7 @@ module.exports = {
 4- Import react-native-gesture-handler in your index.js file
 
 PS: This is necessary as you may have unexpected crashes/weird behaviors on production
-```
+```js
 import 'react-native-gesture-handler';
 ```
 
