@@ -254,6 +254,7 @@ const ImageComponent: FC<ImageComponentProps> = ({
     .onEnd((e) => {
       if ((e.translationY > 200 || e.translationY < -200) && scale.value <= 1) {
         runOnJS(onCloseModal)();
+        positionY.value = withTiming(0);
       } else {
         positionY.value = withTiming(0);
       }
