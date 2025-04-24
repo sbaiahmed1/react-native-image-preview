@@ -20,7 +20,7 @@ export const getImageSource = (
   // Basic checks to prevent errors
   // Return broken image if error or invalid images array
   if (error) {
-    // return errorImage;
+    return errorImage;
   }
 
   return fetchImageAtIndex(images, errorImage);
