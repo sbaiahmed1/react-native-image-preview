@@ -1,6 +1,9 @@
 # react-native-image-preview-reanimated
 
 React native image previewer made with Reanimated RNGH
+Works with both local and remote images
+
+Supports Expo, Expo prebuild, and Bare React Native projects
 
 ## Installation
 
