@@ -34,7 +34,6 @@ cd ios && pod install
 3- Make sure to add Reanimated babel plugin to babel.config.js
 
 PS: make sure to put it last
-```
 ```js
 module.exports = {
       ...
@@ -47,8 +46,7 @@ module.exports = {
 
 4- Import react-native-gesture-handler in your index.js file
 
-PS: This is necessary as you may have unexpected crashes/weird behaviors on production
-```
+PS: This is necessary as you may have unexpected crashes/weird behaviors in production
 ```js
 import 'react-native-gesture-handler';
 ```
@@ -104,10 +102,10 @@ const styles = StyleSheet.create({
 ```
 
 ## Démo
-<img src="example/PreviewModal.gif" alt='Demo video'>
+<img src="example/PreviewModal.gif" width="400px" alt='Demo video'>
 
 ### Pagination Demo
-<img src="example/PaginationComponentExample.gif" width='200' alt='Pagination démo'>
+<img src="example/PaginationComponentExample.gif" width="400px" alt='Pagination démo'>
 
 ## Supported Props (others will be added)
 
