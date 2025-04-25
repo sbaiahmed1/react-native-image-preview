@@ -116,6 +116,7 @@ const PaginationComponent = React.forwardRef<
       >
         <View style={{ flex: 1, width: 100 }}>
           <Animated.FlatList
+            onScrollToIndexFailed={() => {}}
             showsHorizontalScrollIndicator={false}
             ref={ref as AnimatedFlatListRef}
             contentContainerStyle={
