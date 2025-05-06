@@ -102,10 +102,10 @@ const styles = StyleSheet.create({
 ```
 
 ## Démo
-<img src="example/PreviewModal.gif" width="400px" alt='Demo video'>
+<img src="example/PreviewModal.gif" width="200px" alt='Demo video'>
 
 ### Pagination Demo
-<img src="example/PaginationComponentExample.gif" width="400px" alt='Pagination démo'>
+<img src="example/PaginationComponentExample.gif" width="200px" alt='Pagination démo'>
 
 ## Supported Props (others will be added)
 
