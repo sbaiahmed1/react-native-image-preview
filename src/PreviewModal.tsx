@@ -42,8 +42,6 @@ interface PreviewModalProps {
   showPaginationComponent?: boolean;
   modalAnimationIn?: animations;
   modalAnimationOut?: animations;
-  imageAnimationIn?: animations;
-  imageAnimationOut?: animations;
 }
 
 const PreviewModal: React.FC<PreviewModalProps> = ({
@@ -59,8 +57,6 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
   showPaginationComponent = true,
   modalAnimationIn = 'fadeIn',
   modalAnimationOut = 'fadeOut',
-  imageAnimationIn = 'fadeIn',
-  imageAnimationOut = 'fadeOut',
 }) => {
   const { width, height } = useWindowDimensions();
   const savedPositionX = useSharedValue(0);
@@ -118,6 +114,16 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
 
   // Methods
 
+  const handleModalClose = () => {
+    savedPositionX.value = 0;
+    savedPositionY.value = 0;
+    savedScale.value = 1;
+    scale.value = 1;
+    positionX.value = 0;
+    positionY.value = 0;
+    onCloseModal();
+  };
+
   return isModalOpen ? (
     <Animated.View
       entering={getAnimationIn(modalAnimationIn)}
@@ -141,15 +147,13 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
                 positionY={positionY}
                 positionX={positionX}
                 isPanGestureEnabled={isPanGestureEnabled}
-                imageAnimationIn={imageAnimationIn}
-                imageAnimationOut={imageAnimationOut}
                 isPinchGestureEnabled={isPinchGestureEnabled}
                 errorImageUrl={errorImageUrl}
                 isDoubleTapToZoomEnabled={isDoubleTapToZoomEnabled}
                 isSwipeToDismissEnabled={isSwipeToDismissEnabled}
                 item={item}
                 CustomLoadingComponent={CustomLoadingComponent}
-                onCloseModal={onCloseModal}
+                onCloseModal={handleModalClose}
               />
             )}
             horizontal
@@ -193,7 +197,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
           )}
         </View>
       </GestureHandlerRootView>
-      <CloseModalComponent onCloseModal={onCloseModal} />
+      <CloseModalComponent onCloseModal={handleModalClose} />
     </Animated.View>
   ) : null;
 };
