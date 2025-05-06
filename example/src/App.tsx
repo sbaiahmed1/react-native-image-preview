@@ -12,7 +12,6 @@ export default function App() {
         onCloseModal={() => {
           setIsModalOpen(false);
         }}
-        isSwipeToDismissEnabled
         isModalOpen={isModalOpen}
         images={[
           'https://img.freepik.com/photos-gratuite/peinture-numerique-montagne-arbre-colore-au-premier-plan_1340-25699.jpg?size=626&ext=jpg&ga=GA1.1.1826414947.1699142400&semt=ais',

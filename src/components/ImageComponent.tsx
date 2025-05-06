@@ -9,11 +9,6 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
 } from 'react-native-reanimated';
-import {
-  type animations,
-  getAnimationIn,
-  getAnimationOut,
-} from '../utils/modalAnimation';
 import { getImageSource } from '../utils/imageHelper';
 import { type FC, type JSX, useState } from 'react';
 import { onPanGestureEnd, onPanGestureUpdate } from '../utils/panGestureUtils';
@@ -23,10 +18,6 @@ import ImageLoadingComponent from './ImageLoadingComponent';
 interface ImageComponentProps {
   /** Enable/disable pan gesture functionality */
   isPanGestureEnabled: boolean;
-  /** Animation type for image entrance */
-  imageAnimationIn: animations;
-  /** Animation type for image exit */
-  imageAnimationOut: animations;
   /** Enable/disable swipe to dismiss functionality */
   isSwipeToDismissEnabled: boolean;
   /** Callback function when modal needs to be closed */
@@ -57,8 +48,6 @@ interface ImageComponentProps {
 const ImageComponent: FC<ImageComponentProps> = ({
   isPanGestureEnabled,
   CustomLoadingComponent,
-  imageAnimationIn,
-  imageAnimationOut,
   isSwipeToDismissEnabled,
   onCloseModal,
   isDoubleTapToZoomEnabled,
@@ -273,8 +262,6 @@ const ImageComponent: FC<ImageComponentProps> = ({
         <Animated.Image
           onLoadEnd={handleImageLoadEnd}
           onError={handleError}
-          entering={getAnimationIn(imageAnimationIn).delay(100).duration(200)}
-          exiting={getAnimationOut(imageAnimationOut).duration(200)}
           resizeMode={'contain'}
           fadeDuration={500}
           style={[styles.image, animatedStyle]}
